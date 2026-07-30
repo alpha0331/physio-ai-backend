@@ -6,8 +6,8 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 import numpy as np
 import cv2
-from ultralytics import YOLO
 from angle_utils import calculate_angle
+from onnx_pose import get_keypoints
 from database import get_db, FlaggedRep
 
 app = FastAPI()
@@ -19,9 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("Loading pose model...")
-pose_model = YOLO('yolov8n-pose.pt')
-print("Model loaded.")
+print("Pose model (ONNX) ready.")
 
 # Folder to store flagged rep images
 FLAGGED_DIR = "flagged_reps"
@@ -99,10 +97,9 @@ async def analyze_frame(
     tracked_angle = 0
     alert = False
 
-    results = pose_model(frame, verbose=False)
+    kp = get_keypoints(frame)
 
-    if results[0].keypoints is not None and len(results[0].keypoints.xy) > 0:
-        kp = results[0].keypoints.xy[0].tolist()
+    if len(kp) == 17:
         shoulder, elbow, wrist = kp[6], kp[8], kp[10]
         hip, knee, ankle = kp[12], kp[14], kp[16]
 
@@ -209,9 +206,7 @@ async def analyze_frame(
                 tracked_angle = shoulder_angle
 
     # Extract all 17 keypoints (as plain lists) to send back for client-side drawing
-    keypoints_list = []
-    if results[0].keypoints is not None and len(results[0].keypoints.xy) > 0:
-        keypoints_list = results[0].keypoints.xy[0].tolist()
+    keypoints_list = kp if len(kp) == 17 else []
 
     return {
         "exercise": exercise,
