@@ -1,7 +1,7 @@
-fastapi==0.140.7
-uvicorn==0.51.0
-python-multipart==0.0.32
-sqlalchemy==2.0.51
-numpy==2.4.6
-opencv-python-headless==5.0.0.93
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+python-multipart==0.0.19
+sqlalchemy==2.0.36
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
 onnxruntime==1.19.2

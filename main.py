@@ -10,11 +10,17 @@ from angle_utils import calculate_angle
 from onnx_pose import get_keypoints
 from database import get_db, FlaggedRep
 
+import os
+BACKEND_PUBLIC_URL = os.environ.get("BACKEND_PUBLIC_URL", "http://127.0.0.1:8000").rstrip("/")
+
 app = FastAPI()
+
+_cors_origins_env = os.environ.get("CORS_ORIGINS", "*")
+CORS_ORIGINS = ["*"] if _cors_origins_env.strip() == "*" else [o.strip() for o in _cors_origins_env.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -228,7 +234,7 @@ def get_flagged_reps(session_id: str, db: Session = Depends(get_db)):
             "exercise": r.exercise,
             "rep_number": r.rep_number,
             "issue": r.issue,
-            "image_url": f"http://127.0.0.1:8000/flagged_reps/{os.path.basename(r.image_path)}",
+            "image_url": f"{BACKEND_PUBLIC_URL}/flagged_reps/{os.path.basename(r.image_path)}",
             "timestamp": r.timestamp,
         }
         for r in records
